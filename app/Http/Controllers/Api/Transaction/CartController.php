@@ -71,7 +71,11 @@ class CartController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Produk ditambahkan ke keranjang'
+            'message' => 'Produk ditambahkan ke keranjang',
+            'data' => [
+                'id' => $request->product_id,
+                'qty' => $request->qty,
+            ]
         ]);
     }
 
