@@ -86,7 +86,8 @@ class CartController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'qty' => 'required|integer|min:1'
+            // 'qty' => 'required|integer|min:1',
+            'kondisi' => 'required'
         ]);
 
         $item = CartItem::where('id', $id)
@@ -95,9 +96,11 @@ class CartController extends Controller
             })
             ->firstOrFail();
 
-        $item->update([
-            'qty' => $request->qty
-        ]);
+        if ($request->kondisi == "increment") {
+            $item->increment('qty');
+        } else {
+            $item->decrement('qty');
+        }
 
         return response()->json([
             'status' => true,
