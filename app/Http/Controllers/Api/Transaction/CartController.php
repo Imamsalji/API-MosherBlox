@@ -99,7 +99,11 @@ class CartController extends Controller
         if ($request->kondisi == "increment") {
             $item->increment('qty');
         } else {
-            $item->decrement('qty');
+            if ($item->qty <= 1) {
+                $item->delete();
+            } else {
+                $item->decrement('qty');
+            }
         }
 
         return response()->json([
