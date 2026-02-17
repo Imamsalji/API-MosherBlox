@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class OrderController extends Controller
 {
@@ -133,5 +134,68 @@ class OrderController extends Controller
                 'status' => $order->status
             ]
         ]);
+    }
+
+    public function getRoblox()
+    {
+        try {
+
+            // 1️⃣ Ambil user ID dari username
+            $userRes = Http::post(
+                'https://users.roblox.com/v1/usernames/users',
+                [
+                    "usernames" => ["sonyadaulay"],
+                    "excludeBannedUsers" => false
+                ]
+            );
+
+            if (!$userRes->ok()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Gagal ambil user'
+                ], 500);
+            }
+
+            $userData = $userRes->json('data.0');
+
+            if (!$userData) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'User tidak ditemukan'
+                ], 404);
+            }
+
+            $userId = $userData['id'];
+
+            // 2️⃣ Ambil avatar
+            $thumbRes = Http::get(
+                'https://thumbnails.roblox.com/v1/users/avatar-headshot',
+                [
+                    'userIds' => $userId,
+                    'size' => '420x420',
+                    'format' => 'Png'
+                ]
+            );
+
+            if (!$thumbRes->ok()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Gagal ambil avatar'
+                ], 500);
+            }
+
+            $avatar = $thumbRes->json('data.0.imageUrl');
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Avatar berhasil didapatkan',
+                'data' => $avatar
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }
