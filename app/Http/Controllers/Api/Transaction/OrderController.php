@@ -136,7 +136,7 @@ class OrderController extends Controller
         ]);
     }
 
-    public function getRoblox()
+    public function getRoblox($user)
     {
         try {
 
@@ -144,7 +144,7 @@ class OrderController extends Controller
             $userRes = Http::post(
                 'https://users.roblox.com/v1/usernames/users',
                 [
-                    "usernames" => ["sonyadaulay"],
+                    "usernames" => [$user],
                     "excludeBannedUsers" => false
                 ]
             );
@@ -189,7 +189,8 @@ class OrderController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Avatar berhasil didapatkan',
-                'data' => $avatar
+                'data' => $avatar,
+                'user' => $user
             ]);
         } catch (\Throwable $e) {
             return response()->json([

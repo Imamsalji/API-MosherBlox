@@ -48,7 +48,7 @@ Route::prefix('v1')->group(function () {
 
     // PUBLIC
     Route::get('/games', [GameController::class, 'index']);
-    Route::get('/getRoblox', [OrderController::class, 'getRoblox']);
+    Route::get('/getRoblox/{user}', [OrderController::class, 'getRoblox']);
     Route::get('/games/{slug}', [GameController::class, 'show']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
 });
