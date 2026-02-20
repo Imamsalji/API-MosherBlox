@@ -108,7 +108,9 @@ class OrderController extends Controller
     public function uploadPayment(Request $request, $id)
     {
         $request->validate([
-            'payment_proof' => 'required|image|mimes:jpg,jpeg,png|max:3072'
+            'file' => 'required|image|mimes:jpg,jpeg,png|max:3072',
+            'email' => 'required|',
+            'username' => 'required'
         ]);
 
         $order = Order::where('id', $id)
@@ -117,12 +119,14 @@ class OrderController extends Controller
             ->firstOrFail();
 
         // Simpan file
-        $path = $request->file('payment_proof')
+        $path = $request->file('file')
             ->store('payments', 'public');
 
         // Update order
         $order->update([
             'payment_proof' => $path,
+            'email' => $request->email,
+            'username' => $request->username,
             'status' => 'waiting_verification'
         ]);
 
