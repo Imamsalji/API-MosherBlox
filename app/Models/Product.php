@@ -18,9 +18,15 @@ class Product extends Model
         'stock',
         'status'
     ];
+    protected $appends = ['image_url'];
 
     public function game()
     {
         return $this->belongsTo(Game::class);
+    }
+
+    public function getImageUrlAttribute()
+    {
+        return asset('storage/' . $this->image);
     }
 }
