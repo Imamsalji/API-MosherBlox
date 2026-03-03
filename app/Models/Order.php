@@ -14,6 +14,7 @@ class Order extends Model
         'total_price',
         'status',
         'payment_proof',
+        'payment_proof_url',
         'admin_note'
     ];
 
@@ -25,5 +26,10 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function getPaymentProofUrlAttribute()
+    {
+        return asset('storage/' . $this->payment_proof);
     }
 }

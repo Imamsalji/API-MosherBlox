@@ -67,7 +67,6 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::get('/games/{id}', [AdminGameController::class, 'show']);
     Route::put('/games/{id}', [AdminGameController::class, 'update']);
     Route::delete('/games/{id}', [AdminGameController::class, 'destroy']);
-
     // PRODUCT
     Route::get('/products', [AdminProductController::class, 'index']);
     Route::post('/products', [AdminProductController::class, 'store']);
