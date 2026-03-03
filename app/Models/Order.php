@@ -17,7 +17,7 @@ class Order extends Model
         'payment_proof_url',
         'admin_note'
     ];
-
+    protected $appends = ['payment_proof_url'];
     public function user()
     {
         return $this->belongsTo(User::class);
