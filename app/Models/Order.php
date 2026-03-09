@@ -15,6 +15,8 @@ class Order extends Model
         'status',
         'payment_proof',
         'payment_proof_url',
+        'email',
+        'username',
         'admin_note'
     ];
     protected $appends = ['payment_proof_url'];
