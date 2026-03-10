@@ -31,4 +31,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'whatsapp' => [
+        'url'            => env('WHATSAPP_HANDLER_URL', 'http://localhost:3000'),
+        'key'            => env('WHATSAPP_HANDLER_API_KEY', ''),
+        'webhook_secret' => env('WHATSAPP_WEBHOOK_SECRET', ''),
+    ],
+
 ];

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Transaction\OrderController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\GameController as AdminGameController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\WhatsAppWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +56,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/products/{id}', [ProductController::class, 'show']);
 });
 
+Route::post('/webhook/whatsapp', [WhatsAppWebhookController::class, 'receive']);
 
 Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/orders', [AdminOrderController::class, 'index']);
