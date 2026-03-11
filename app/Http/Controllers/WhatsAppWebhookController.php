@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Services\WhatsAppService;
+use App\Services\WaChatbotService;
 
 class WhatsAppWebhookController extends Controller
 {
@@ -20,7 +21,7 @@ class WhatsAppWebhookController extends Controller
      *   "timestamp": "2024-01-01T10:00:00.000Z"
      * }
      */
-    public function receive(Request $request)
+    public function receive(Request $request, WaChatbotService $chatbot)
     {
         // Validate webhook secret
         $secret = config('services.whatsapp.webhook_secret');
@@ -42,8 +43,15 @@ class WhatsAppWebhookController extends Controller
         // - Route to support agent
         if ($request['number'] = "6285714817990") {
             $message = "✅ pesan masuknya ini : " . $request['message'];
+            $response = $chatbot->process('6285714817990', $request['message']);
+            $attr = $this->whatsapp->sendMessage('6285714817990', $response);
 
-            $this->whatsapp->sendMessage('6285714817990', $message);
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'reply' => $response,
+                'responsenwa' => $attr
+            ]);
         }
 
         return response()->json([
