@@ -15,11 +15,13 @@ class Order extends Model
         'status',
         'payment_proof',
         'payment_proof_url',
+        'bukti_admin',
+        'bukti_admin_url',
         'email',
         'username',
         'admin_note'
     ];
-    protected $appends = ['payment_proof_url'];
+    protected $appends = ['payment_proof_url', 'bukti_admin_url'];
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -33,5 +35,10 @@ class Order extends Model
     public function getPaymentProofUrlAttribute()
     {
         return asset('storage/' . $this->payment_proof);
+    }
+
+    public function getBuktiAdminUrlAttribute()
+    {
+        return asset('storage/' . $this->bukti_admin);
     }
 }

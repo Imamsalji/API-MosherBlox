@@ -46,15 +46,23 @@ class OrderController extends Controller
     {
         $request->validate([
             'status' => 'required|in:success,rejected',
-            'admin_note' => 'required|string'
+            'admin_note' => 'required|string',
+            'image' => 'nullable|image|max:2048',
         ]);
 
         $order = Order::where('status', 'waiting_verification')
             ->findOrFail($id);
 
+        $image = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image')
+                ->store('games', 'public');
+        }
+
         $order->update([
             'status' => $request->status,
-            'admin_note' => $request->admin_note
+            'admin_note' => $request->admin_note,
+            'bukti_admin' => $image
         ]);
 
         return response()->json([
