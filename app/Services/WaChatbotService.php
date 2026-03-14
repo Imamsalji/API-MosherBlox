@@ -5,12 +5,13 @@ namespace App\Services;
 use App\Models\Game;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Support\Str;
 
 class WaChatbotService
 {
     public function process($number, $message)
     {
-        if ($message == 'menu') {
+        if (Str::lower($message) ==  'menu') {
             return $this->menu();
         }
 
