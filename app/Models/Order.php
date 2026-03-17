@@ -22,6 +22,7 @@ class Order extends Model
         'admin_note'
     ];
     protected $appends = ['payment_proof_url', 'bukti_admin_url'];
+
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -50,9 +50,7 @@ class OrderController extends Controller
             'bukti_admin' => 'nullable|image|max:2048',
         ]);
 
-        $order = Order::where('status', 'waiting_verification')->orWhere('status', 'success')->orWhere('status', 'rejected')
-            ->findOrFail($id);
-
+        $order = Order::findOrFail($id);
         $image = null;
         if ($request->hasFile('bukti_admin')) {
             $image = $request->file('bukti_admin')
