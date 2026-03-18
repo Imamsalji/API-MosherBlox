@@ -78,7 +78,7 @@ class WaChatbotService
 
         $name = $data[1];
         $email = $data[2];
-        $Password = $data[2];
+        $Password = $data[3];
 
         User::updateOrCreate(
             ['phone' => $number],
