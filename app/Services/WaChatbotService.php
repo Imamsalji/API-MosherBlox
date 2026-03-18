@@ -31,7 +31,6 @@ class WaChatbotService
             return $this->registerUser($number, $message);
         }
 
-
         return $this->defaultReply();
     }
 

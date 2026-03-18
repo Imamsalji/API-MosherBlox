@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AccountSettingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -34,6 +35,9 @@ Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/account', [AccountSettingController::class, 'profile']);
+        Route::put('/account', [AccountSettingController::class, 'updateProfile']);
+        Route::put('/account/password', [AccountSettingController::class, 'updatePassword']);
         Route::prefix('cart')->group(function () {
             Route::get('/', [CartController::class, 'index']);
             Route::post('/add', [CartController::class, 'add']);
@@ -59,6 +63,9 @@ Route::prefix('v1')->group(function () {
 Route::post('/webhook/whatsapp', [WhatsAppWebhookController::class, 'receive']);
 
 Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::get('/account', [AccountSettingController::class, 'profile']);
+    Route::put('/account', [AccountSettingController::class, 'updateProfile']);
+    Route::put('/account/password', [AccountSettingController::class, 'updatePassword']);
     Route::get('/orders', [AdminOrderController::class, 'index']);
     Route::get('/orders/{id}', [AdminOrderController::class, 'show']);
     Route::put('/orders/{id}/verify', [AdminOrderController::class, 'verify']);
