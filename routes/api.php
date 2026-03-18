@@ -35,6 +35,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/account/avatar', [AccountSettingController::class, 'updateAvatar']);
         Route::get('/account', [AccountSettingController::class, 'profile']);
         Route::put('/account', [AccountSettingController::class, 'updateProfile']);
         Route::put('/account/password', [AccountSettingController::class, 'updatePassword']);
@@ -63,6 +64,7 @@ Route::prefix('v1')->group(function () {
 Route::post('/webhook/whatsapp', [WhatsAppWebhookController::class, 'receive']);
 
 Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::post('/account/avatar', [AccountSettingController::class, 'updateAvatar']);
     Route::get('/account', [AccountSettingController::class, 'profile']);
     Route::put('/account', [AccountSettingController::class, 'updateProfile']);
     Route::put('/account/password', [AccountSettingController::class, 'updatePassword']);

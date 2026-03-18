@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class AccountSettingController extends Controller
 {
@@ -68,6 +69,37 @@ class AccountSettingController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Password berhasil diubah'
+        ]);
+    }
+
+    public function updateAvatar(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpg,jpeg,png|max:2048'
+        ]);
+
+        // hapus avatar lama jika ada
+        if ($user->avatar && Storage::exists('public/' . $user->avatar)) {
+            Storage::delete('public/' . $user->avatar);
+        }
+
+        // simpan avatar baru
+        $file = $request->file('avatar');
+        $path = $file->store('avatar', 'public');
+
+        // update database
+        $user->update([
+            'avatar' => $path
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Avatar berhasil diupdate',
+            'data' => [
+                'avatar_url' => asset('storage/' . $path)
+            ]
         ]);
     }
 }
