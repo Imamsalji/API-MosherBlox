@@ -13,9 +13,18 @@ class AccountSettingController extends Controller
     // 1. Get Profile
     public function profile(Request $request)
     {
+        $user = $request->user();
+
         return response()->json([
             'status' => true,
-            'data' => $request->user()
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => $user->avatar
+                    ? asset('storage/' . $user->avatar)
+                    : null
+            ]
         ]);
     }
 
