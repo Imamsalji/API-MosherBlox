@@ -11,6 +11,10 @@ class WaChatbotService
 {
     public function process($number, $message)
     {
+        if (Str::lower($message) ==  'hallo' | Str::lower($message) ==  'helo' | Str::lower($message) ==  'halo' | Str::lower($message) ==  'hai') {
+            return $this->menu();
+        }
+
         if (Str::lower($message) ==  'menu') {
             return $this->menu();
         }
