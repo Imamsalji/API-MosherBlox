@@ -203,4 +203,23 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+    public function report(Request $request, $id)
+    {
+        $request->validate([
+            'user_note' => 'required|string',
+        ]);
+        $order = Order::findOrFail($id);
+
+        $order->update([
+            'status' => 'complaint',
+            'user_note' => $request->user_note,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Komplaint berhasil dikirim, tunggu beberapa saat hingga setatus di rubah',
+            'data' => $order
+        ]);
+    }
 }

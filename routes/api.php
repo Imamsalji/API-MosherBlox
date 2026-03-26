@@ -50,6 +50,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/orders/{id}/payment', [OrderController::class, 'uploadPayment']);
         Route::get('/orders', [OrderController::class, 'index']);
         Route::get('/orders/{id}', [OrderController::class, 'show']);
+        Route::put('/orders/{id}/report', [OrderController::class, 'report']);
 
         Route::post('/logout', [AuthController::class, 'logout']);
     });
