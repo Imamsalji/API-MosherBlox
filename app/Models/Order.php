@@ -19,7 +19,8 @@ class Order extends Model
         'bukti_admin_url',
         'email',
         'username',
-        'admin_note'
+        'admin_note',
+        'user_note'
     ];
     protected $appends = ['payment_proof_url', 'bukti_admin_url'];
 
