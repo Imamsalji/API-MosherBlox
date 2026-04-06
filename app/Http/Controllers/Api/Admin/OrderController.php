@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
@@ -18,9 +21,9 @@ class OrderController extends Controller
             ->get();
 
         return response()->json([
-            'status' => true,
+            'status'  => true,
             'message' => 'List semua order',
-            'data' => $orders
+            'data'    => $orders,
         ]);
     }
 
@@ -33,9 +36,9 @@ class OrderController extends Controller
             ->findOrFail($id);
 
         return response()->json([
-            'status' => true,
+            'status'  => true,
             'message' => 'Detail order',
-            'data' => $order
+            'data'    => $order,
         ]);
     }
 
@@ -45,28 +48,49 @@ class OrderController extends Controller
     public function verify(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:success,rejected',
-            'admin_note' => 'required|string',
+            'status'      => 'required|in:success,rejected',
+            'admin_note'  => 'required|string',
             'bukti_admin' => 'nullable|image|max:2048',
         ]);
 
         $order = Order::findOrFail($id);
-        $image = null;
+
+        // Upload file di luar transaksi
+        $imagePath = null;
         if ($request->hasFile('bukti_admin')) {
-            $image = $request->file('bukti_admin')
-                ->store('games', 'public');
+            $imagePath = $request->file('bukti_admin')->store('games', 'public');
         }
 
-        $order->update([
-            'status' => $request->status,
-            'admin_note' => $request->admin_note,
-            'bukti_admin' => $image
-        ]);
+        try {
+            DB::beginTransaction();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Order berhasil diverifikasi',
-            'data' => $order
-        ]);
+            $order->update([
+                'status'      => $request->status,
+                'admin_note'  => $request->admin_note,
+                'bukti_admin' => $imagePath ?? $order->bukti_admin,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Order berhasil diverifikasi',
+                'data'    => $order,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            // Hapus file baru yang sudah terlanjur diupload
+            if ($imagePath && Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
+            }
+
+            Log::error('OrderController@verify failed', ['order_id' => $id, 'error' => $e->getMessage()]);
+
+            return response()->json([
+                'status'  => false,
+                'message' => 'Gagal memverifikasi order. Silakan coba lagi.',
+            ], 500);
+        }
     }
 }
