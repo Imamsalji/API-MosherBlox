@@ -12,7 +12,8 @@ use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\GameController as AdminGameController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\Admin\DashboardController;
-use App\Http\Controllers\WhatsAppWebhookController;
+use App\Http\Controllers\Api\Notification\EmailController;
+use App\Http\Controllers\Api\Notification\WhatsAppWebhookController as WhatsAppWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +32,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 //User Route
 Route::prefix('v1')->group(function () {
+
+    //Notification
+    Route::post('/webhook/whatsapp', [WhatsAppWebhookController::class, 'receive']);
+    Route::post('/email/send', [EmailController::class, 'index']);
 
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
@@ -63,7 +68,6 @@ Route::prefix('v1')->group(function () {
     Route::get('/products/{id}', [ProductController::class, 'show']);
 });
 
-Route::post('/webhook/whatsapp', [WhatsAppWebhookController::class, 'receive']);
 
 Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/account/avatar', [AccountSettingController::class, 'updateAvatar']);
