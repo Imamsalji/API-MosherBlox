@@ -19,13 +19,13 @@ class Game extends Model
     ];
     protected $appends = ['image_url'];
 
-    public function products()
-    {
-        return $this->hasMany(Product::class);
-    }
-
     public function getImageUrlAttribute()
     {
         return asset('storage/' . $this->image);
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 }
