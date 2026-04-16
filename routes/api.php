@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\GameController as AdminGameController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\Article\ArticleController;
 use App\Http\Controllers\Api\Notification\EmailController;
 use App\Http\Controllers\Api\Notification\WhatsAppWebhookController as WhatsAppWebhookController;
 
@@ -66,6 +67,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/getRoblox/{user}', [OrderController::class, 'getRoblox']);
     Route::get('/games/{slug}', [GameController::class, 'show']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
+
+    //Article
+    Route::get('articles', [ArticleController::class, 'index'])->name('articles.index');
+    Route::get('articles/{slug}', [ArticleController::class, 'show'])->name('articles.show');
+
 });
 
 
@@ -77,6 +83,12 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::get('/orders', [AdminOrderController::class, 'index']);
     Route::get('/orders/{id}', [AdminOrderController::class, 'show']);
     Route::put('/orders/{id}/verify', [AdminOrderController::class, 'verify']);
+
+    //Article
+    Route::get('admin/articles', [ArticleController::class, 'adminIndex'])->name('articles.admin.index');
+    Route::post('articles', [ArticleController::class, 'store'])->name('articles.store');
+    Route::match(['put', 'patch'], 'articles/{article}', [ArticleController::class, 'update'])->name('articles.update');
+    Route::delete('articles/{article}', [ArticleController::class, 'destroy'])->name('articles.destroy');
 
     // GAME
     Route::get('/games', [AdminGameController::class, 'index']);

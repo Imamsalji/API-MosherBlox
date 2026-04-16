@@ -3,125 +3,197 @@
 namespace App\Http\Controllers\Api\Article;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ArticleRequest;
-use App\Services\ArticleService;
-use App\Models\Article;
+use App\Http\Requests\Articles\StoreArticleRequest;
+use App\Http\Requests\Articles\UpdateArticleRequest;
+use App\Http\Resources\Articles\ArticleResource;
+use App\Http\Traits\ApiResponseTrait;
+use App\Models\Articles\Article;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ArticleController extends Controller
 {
-    public function __construct(
-        private readonly ArticleService $ArticleService,
-    ) {}
+    use ApiResponseTrait;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public Endpoints
+    |--------------------------------------------------------------------------
+    */
 
     /**
-     * Display a listing of the resource.
+     * GET /api/v1/articles
+     * List semua artikel published dengan filter & pagination
      */
-    public function index(Request $request) {
-        $filters = $request->only(['status', 'published_at']);
-        $ArticleService = $this->ArticleService->getAllPaginated(
-            filters: $filters
+    public function index(Request $request): JsonResponse
+    {
+        $articles = Article::query()
+            ->with(['author:id,name', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->withCount(['comments', 'views'])
+            ->published()
+            ->when($request->search, fn($q) => $q->search($request->search))
+            ->when($request->category, fn($q) => $q->whereHas(
+                'categories',
+                fn($q) => $q->where('slug', $request->category)
+            ))
+            ->when($request->tag, fn($q) => $q->whereHas(
+                'tags',
+                fn($q) => $q->where('slug', $request->tag)
+            ))
+            ->when($request->author_id, fn($q) => $q->byAuthor($request->author_id))
+            ->latest('published_at')
+            ->paginate($request->per_page ?? 15);
+
+        return $this->successResponse(
+            ArticleResource::collection($articles)->response()->getData(true)
         );
-
-        return response()->json([
-            'status' => true,
-            'data'   => [
-                'Article' => $ArticleService,
-            ],
-        ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * GET /api/v1/articles/{slug}
+     * Detail artikel published
      */
-    public function create()
+    public function show(Request $request, string $slug): JsonResponse
     {
-        //
+        $article = Article::query()
+            ->with([
+                'author:id,name',
+                'categories:id,name,slug',
+                'tags:id,name,slug',
+                'comments.user:id,name',
+                'metas',
+            ])
+            ->withCount(['comments', 'views'])
+            ->published()
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        $article->recordView($request->ip());
+
+        return $this->successResponse(new ArticleResource($article));
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Protected Endpoints (Auth Required)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * GET /api/v1/admin/articles
+     * List artikel milik user yang sedang login
+     */
+    public function adminIndex(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Article::class);
+
+        $articles = Article::query()
+            ->with(['author:id,name', 'categories:id,name,slug'])
+            ->withCount(['comments', 'views'])
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->when($request->search, fn($q) => $q->search($request->search))
+            ->latest()
+            ->paginate($request->per_page ?? 20);
+
+        return $this->successResponse(
+            ArticleResource::collection($articles)->response()->getData(true)
+        );
     }
 
     /**
-     * Store a newly created resource in storage.
+     * POST /api/v1/articles
      */
-    public function store(ArticleRequest $request)
+    public function store(StoreArticleRequest $request): JsonResponse
     {
-        // Upload file di luar transaksi (filesystem bukan atomic)
-        $imagePath = null;
-        if ($request->hasFile('thumbnail')) {
-            $imagePath = $request->file('thumbnail')->store('article', 'public');
-        }
+        $this->authorize('create', Article::class);
 
-        try {
-            DB::beginTransaction();
+        $article = DB::transaction(function () use ($request) {
+            $data = $request->validated();
 
-            $article = Article::create([
-                'title'     => $request->title,
-                'slug'     => $request->slug,
-                'content'     => $request->content,
-                'excerpt'     => $request->excerpt,
-                'thumbnail'     => $imagePath,
-                'status'     => $request->status,
-                'published_at'     => $request->published_at,
-                'author_id'     => Auth::user()->id,
-                'content'     => $request->content,
-            ]);
-
-            DB::commit();
-
-            return response()->json([
-                'status'  => true,
-                'message' => 'Article berhasil ditambahkan',
-                'data'    => $article,
-            ]);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            // Hapus file yang sudah terlanjur diupload
-            if ($imagePath && Storage::disk('public')->exists($imagePath)) {
-                Storage::disk('public')->delete($imagePath);
+            if ($request->hasFile('thumbnail')) {
+                $data['thumbnail'] = $request->file('thumbnail')
+                    ->store('articles/thumbnails', 'public');
             }
 
-            Log::error('ArticleController@store failed', ['error' => $e->getMessage()]);
+            $data['author_id'] = Auth::id();
 
-            return response()->json([
-                'status'  => false,
-                'message' => 'Gagal menambahkan Article. Silakan coba lagi.',
-            ], 500);
-        }
+            if ($data['status'] === Article::STATUS_PUBLISHED && empty($data['published_at'])) {
+                $data['published_at'] = now();
+            }
+
+            $article = Article::create($data);
+            $article->categories()->sync($data['category_ids'] ?? []);
+            $article->tags()->sync($data['tag_ids'] ?? []);
+
+            return $article->load(['author:id,name', 'categories:id,name,slug', 'tags:id,name,slug']);
+        });
+
+        return $this->createdResponse(new ArticleResource($article), 'Artikel berhasil dibuat.');
     }
 
     /**
-     * Display the specified resource.
+     * PUT/PATCH /api/v1/articles/{article}
      */
-    public function show(string $id)
+    public function update(UpdateArticleRequest $request, Article $article): JsonResponse
     {
-        //
+        $this->authorize('update', $article);
+
+        $article = DB::transaction(function () use ($request, $article) {
+            $data = $request->validated();
+
+            if ($request->hasFile('thumbnail')) {
+                if ($article->thumbnail) {
+                    Storage::disk('public')->delete($article->thumbnail);
+                }
+                $data['thumbnail'] = $request->file('thumbnail')
+                    ->store('articles/thumbnails', 'public');
+            }
+
+            if (
+                isset($data['status']) &&
+                $data['status'] === Article::STATUS_PUBLISHED &&
+                $article->status === Article::STATUS_DRAFT &&
+                empty($article->published_at)
+            ) {
+                $data['published_at'] = now();
+            }
+
+            $article->update($data);
+
+            if (array_key_exists('category_ids', $data)) {
+                $article->categories()->sync($data['category_ids'] ?? []);
+            }
+
+            if (array_key_exists('tag_ids', $data)) {
+                $article->tags()->sync($data['tag_ids'] ?? []);
+            }
+
+            return $article->load(['author:id,name', 'categories:id,name,slug', 'tags:id,name,slug']);
+        });
+
+        return $this->successResponse(new ArticleResource($article), 'Artikel berhasil diperbarui.');
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * DELETE /api/v1/articles/{article}
      */
-    public function edit(string $id)
+    public function destroy(Article $article): JsonResponse
     {
-        //
-    }
+        $this->authorize('delete', $article);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(ArticleRequest $request, string $id)
-    {
-        //
-    }
+        DB::transaction(function () use ($article) {
+            if ($article->thumbnail) {
+                Storage::disk('public')->delete($article->thumbnail);
+            }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+            $article->categories()->detach();
+            $article->tags()->detach();
+            $article->delete();
+        });
+
+        return $this->noContentResponse();
     }
 }
