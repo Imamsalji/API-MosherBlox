@@ -24,8 +24,6 @@ return new class extends Migration
 
             $table->foreignId('author_id')->constrained('users')->cascadeOnDelete();
 
-            $table->timestamps();
-
             // index biar cepat
             $table->index('slug');
             $table->index('status');

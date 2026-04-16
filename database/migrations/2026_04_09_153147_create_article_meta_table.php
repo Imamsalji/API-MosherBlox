@@ -18,8 +18,6 @@ return new class extends Migration
             $table->string('meta_key');
             $table->text('meta_value')->nullable();
 
-            $table->timestamps();
-
             $table->index(['article_id', 'meta_key']);
             $table->timestamps();
         });
