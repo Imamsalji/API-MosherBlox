@@ -4,88 +4,90 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use App\Models\User;
-use App\Models\Articles\Article;
-use App\Models\Articles\Category;
-use App\Models\Articles\Tag;
-use App\Models\Articles\Comment;
-use App\Models\Articles\ArticleView;
-use App\Models\Articles\ArticleMeta;
+use Illuminate\Support\Facades\DB;
 
 class ArticleSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. User get
-        $users = User::all();
+         // CATEGORIES
+        DB::table('categories')->insert([
+            [
+                'id' => 1,
+                'name' => 'Programming',
+                'slug' => 'programming',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'name' => 'Backend',
+                'slug' => 'backend',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ]);
 
-        // 2. Categories
-        $categories = collect([
-            ['name' => 'Programming'],
-            ['name' => 'Backend'],
-            ['name' => 'Tutorial'],
-            ['name' => 'Tips'],
-        ])->map(function ($cat) {
-            return Category::create([
-                'name' => $cat['name'],
-                'slug' => Str::slug($cat['name']),
-            ]);
-        });
+        // TAGS
+        DB::table('tags')->insert([
+            [
+                'id' => 1,
+                'name' => 'Laravel',
+                'slug' => 'laravel',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'name' => 'API',
+                'slug' => 'api',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ]);
 
-        // 3. Tags
-        $tags = collect([
-            'Laravel',
-            'PHP',
-            'API',
-            'JavaScript',
-            'Coding',
-            'Web'
-        ])->map(function ($tag) {
-            return Tag::create([
-                'name' => $tag,
-                'slug' => Str::slug($tag),
-            ]);
-        });
-
-        // 4. Articles
-        Article::factory(20)->create()->each(function ($article) use ($categories, $tags, $users) {
-
-            // assign author random
-            $article->update([
-                'author_id' => $users->random()->id,
-                'status' => collect(['draft', 'published'])->random(),
+        // ARTICLES
+        DB::table('articles')->insert([
+            [
+                'id' => 1,
+                'title' => 'Belajar Laravel Dasar',
+                'slug' => Str::slug('Belajar Laravel Dasar'),
+                'content' => 'Ini adalah konten belajar Laravel...',
+                'excerpt' => 'Belajar Laravel dari nol',
+                'thumbnail' => null,
+                'status' => 'published',
                 'published_at' => now(),
-            ]);
+                'author_id' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'title' => 'Tips Backend Developer',
+                'slug' => Str::slug('Tips Backend Developer'),
+                'content' => 'Tips menjadi backend developer...',
+                'excerpt' => 'Tips backend',
+                'thumbnail' => null,
+                'status' => 'draft',
+                'published_at' => null,
+                'author_id' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ]);
 
-            // attach category (1-3)
-            $article->categories()->attach(
-                $categories->random(rand(1, 3))->pluck('id')
-            );
+        // RELATION: article_category
+        DB::table('article_category')->insert([
+            ['article_id' => 1, 'category_id' => 1],
+            ['article_id' => 1, 'category_id' => 2],
+            ['article_id' => 2, 'category_id' => 2],
+        ]);
 
-            // attach tags (2-4)
-            $article->tags()->attach(
-                $tags->random(rand(2, 4))->pluck('id')
-            );
-
-            // 5. Comments (0-5)
-            Comment::factory(rand(0, 5))->create([
-                'article_id' => $article->id,
-            ]);
-
-            // 6. Views (1-10)
-            for ($i = 0; $i < rand(1, 10); $i++) {
-                ArticleView::create([
-                    'article_id' => $article->id,
-                    'ip_address' => fake()->ipv4(),
-                ]);
-            }
-
-            // 7. Meta SEO
-            ArticleMeta::create([
-                'article_id' => $article->id,
-                'meta_key' => 'seo_title',
-                'meta_value' => $article->title,
-            ]);
-        });
+        // RELATION: article_tag
+        DB::table('article_tag')->insert([
+            ['article_id' => 1, 'tag_id' => 1],
+            ['article_id' => 1, 'tag_id' => 2],
+            ['article_id' => 2, 'tag_id' => 2],
+        ]);
     }
 }

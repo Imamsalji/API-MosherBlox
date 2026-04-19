@@ -34,11 +34,6 @@ class Article extends Model
     const STATUS_DRAFT     = 'draft';
     const STATUS_PUBLISHED = 'published';
 
-    /*
-    |--------------------------------------------------------------------------
-    | Boot
-    |--------------------------------------------------------------------------
-    */
     protected static function boot(): void
     {
         parent::boot();
