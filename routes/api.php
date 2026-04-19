@@ -13,6 +13,9 @@ use App\Http\Controllers\Api\Admin\GameController as AdminGameController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Article\ArticleController;
+use App\Http\Controllers\Api\Article\CategoryController;
+use App\Http\Controllers\Api\Article\CommentController;
+use App\Http\Controllers\Api\Article\TagController;
 use App\Http\Controllers\Api\Notification\EmailController;
 use App\Http\Controllers\Api\Notification\WhatsAppWebhookController as WhatsAppWebhookController;
 
@@ -59,6 +62,31 @@ Route::prefix('v1')->group(function () {
         Route::get('/orders/{id}', [OrderController::class, 'show']);
         Route::put('/orders/{id}/report', [OrderController::class, 'report']);
 
+        //Article
+        Route::get('admin/articles', [ArticleController::class, 'adminIndex'])->name('articles.admin.index');
+        Route::post('articles', [ArticleController::class, 'store'])->name('articles.store');
+        Route::match(['put', 'patch'], 'articles/{article}', [ArticleController::class, 'update'])->name('articles.update');
+        Route::delete('articles/{article}', [ArticleController::class, 'destroy'])->name('articles.destroy');
+
+        /*
+        | Public — Articles
+        */
+        Route::get('articles',       [ArticleController::class, 'index'])->name('articles.index');
+        Route::get('articles/{slug}', [ArticleController::class, 'show'])->name('articles.show');
+
+        /*
+        | Public — Categories & Tags (read-only)
+        */
+        Route::get('categories',          [CategoryController::class, 'index'])->name('categories.index');
+        Route::get('categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
+        Route::get('tags',                [TagController::class, 'index'])->name('tags.index');
+
+        /*
+        | Public — Comments (read)
+        */
+        Route::get('articles/{slug}/comments', [CommentController::class, 'index'])->name('comments.index');
+
+
         Route::post('/logout', [AuthController::class, 'logout']);
     });
 
@@ -84,12 +112,6 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::get('/orders/{id}', [AdminOrderController::class, 'show']);
     Route::put('/orders/{id}/verify', [AdminOrderController::class, 'verify']);
 
-    //Article
-    Route::get('admin/articles', [ArticleController::class, 'adminIndex'])->name('articles.admin.index');
-    Route::post('articles', [ArticleController::class, 'store'])->name('articles.store');
-    Route::match(['put', 'patch'], 'articles/{article}', [ArticleController::class, 'update'])->name('articles.update');
-    Route::delete('articles/{article}', [ArticleController::class, 'destroy'])->name('articles.destroy');
-
     // GAME
     Route::get('/games', [AdminGameController::class, 'index']);
     Route::post('/games', [AdminGameController::class, 'store']);
@@ -102,6 +124,26 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::get('/products/{id}', [AdminProductController::class, 'show']);
     Route::put('/products/{id}', [AdminProductController::class, 'update']);
     Route::delete('/products/{id}', [AdminProductController::class, 'destroy']);
+
+    // Articles CRUD
+    Route::get('admin/articles',                    [ArticleController::class, 'adminIndex'])->name('articles.admin.index');
+    Route::post('articles',                         [ArticleController::class, 'store'])->name('articles.store');
+    Route::match(['put', 'patch'], 'articles/{article}', [ArticleController::class, 'update'])->name('articles.update');
+    Route::delete('articles/{article}',             [ArticleController::class, 'destroy'])->name('articles.destroy');
+
+    // Categories CRUD
+    Route::post('categories',             [CategoryController::class, 'store'])->name('categories.store');
+    Route::match(['put', 'patch'], 'categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+    // Tags CRUD
+    Route::post('tags',                   [TagController::class, 'store'])->name('tags.store');
+    Route::match(['put', 'patch'], 'tags/{tag}', [TagController::class, 'update'])->name('tags.update');
+    Route::delete('tags/{tag}',           [TagController::class, 'destroy'])->name('tags.destroy');
+
+    // Comments — post & delete
+    Route::post('articles/{slug}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::delete('comments/{comment}',     [CommentController::class, 'destroy'])->name('comments.destroy');
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
