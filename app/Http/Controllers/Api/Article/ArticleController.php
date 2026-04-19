@@ -64,7 +64,7 @@ class ArticleController extends Controller
                 'categories:id,name,slug',
                 'tags:id,name,slug',
                 'comments.user:id,name',
-                'metas',
+                // 'metas',
             ])
             ->withCount(['comments', 'views'])
             ->published()
