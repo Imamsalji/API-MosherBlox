@@ -63,7 +63,6 @@ Route::prefix('v1')->group(function () {
         Route::put('/orders/{id}/report', [OrderController::class, 'report']);
 
         //Article
-        Route::get('admin/articles', [ArticleController::class, 'adminIndex'])->name('articles.admin.index');
         Route::post('articles', [ArticleController::class, 'store'])->name('articles.store');
         Route::match(['put', 'patch'], 'articles/{article}', [ArticleController::class, 'update'])->name('articles.update');
         Route::delete('articles/{article}', [ArticleController::class, 'destroy'])->name('articles.destroy');
@@ -126,7 +125,7 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::delete('/products/{id}', [AdminProductController::class, 'destroy']);
 
     // Articles CRUD
-    Route::get('admin/articles',                    [ArticleController::class, 'adminIndex'])->name('articles.admin.index');
+    Route::get('articles',                    [ArticleController::class, 'adminIndex'])->name('articles.admin.index');
     Route::post('articles',                         [ArticleController::class, 'store'])->name('articles.store');
     Route::match(['put', 'patch'], 'articles/{article}', [ArticleController::class, 'update'])->name('articles.update');
     Route::delete('articles/{article}',             [ArticleController::class, 'destroy'])->name('articles.destroy');
