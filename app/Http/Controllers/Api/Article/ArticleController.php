@@ -106,7 +106,7 @@ class ArticleController extends Controller
     /**
      * POST /api/v1/articles
      */
-    public function store(StoreArticleRequest $request): JsonResponse
+    public function store(StoreArticleRequest $request)
     {
         $this->authorize('create', Article::class);
 
@@ -120,7 +120,8 @@ class ArticleController extends Controller
 
             $data['author_id'] = Auth::id();
 
-            if ($data['status'] === Article::STATUS_PUBLISHED && empty($data['published_at'])) {
+            if ($data['status'] === Article::STATUS_PUBLISHED
+            && empty($data['published_at'])) {
                 $data['published_at'] = now();
             }
 
