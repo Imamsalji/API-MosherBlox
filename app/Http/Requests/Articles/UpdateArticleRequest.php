@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests\Articles;
 
+use App\Models\Articles\Article;
 use Illuminate\Foundation\Http\FormRequest;
-
+use Illuminate\Validation\Rule;
 class UpdateArticleRequest extends FormRequest
 {
     /**
@@ -11,7 +12,7 @@ class UpdateArticleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,8 +22,20 @@ class UpdateArticleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $articleId = $this->route('article')?->id;
+
         return [
-            //
+            'title'        => ['sometimes', 'required', 'string', 'max:255'],
+            'slug'         => ['nullable', 'string', 'max:255', Rule::unique('articles', 'slug')->ignore($articleId)],
+            'content'      => ['sometimes', 'required', 'string'],
+            'excerpt'      => ['nullable', 'string', 'max:500'],
+            'thumbnail'    => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'status'       => ['sometimes', Rule::in([Article::STATUS_DRAFT, Article::STATUS_PUBLISHED])],
+            'published_at' => ['nullable', 'date'],
+            'category_ids' => ['nullable', 'array'],
+            'category_ids.*' => ['integer', 'exists:categories,id'],
+            'tag_ids'      => ['nullable', 'array'],
+            'tag_ids.*'    => ['integer', 'exists:tags,id'],
         ];
     }
 }
