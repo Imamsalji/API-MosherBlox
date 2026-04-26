@@ -84,6 +84,9 @@ Route::prefix('v1')->group(function () {
         | Public — Comments (read)
         */
         Route::get('articles/{slug}/comments', [CommentController::class, 'index'])->name('comments.index');
+        // Comments — post & delete
+        Route::post('articles/{slug}/comments', [CommentController::class, 'store'])->name('comments.store');
+        Route::delete('comments/{comment}',     [CommentController::class, 'destroy'])->name('comments.destroy');
 
 
         Route::post('/logout', [AuthController::class, 'logout']);
