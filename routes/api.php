@@ -101,7 +101,7 @@ Route::prefix('v1')->group(function () {
     //Article
     Route::get('articles', [ArticleController::class, 'index'])->name('articles.index');
     Route::get('articles/{slug}', [ArticleController::class, 'show'])->name('articles.show');
-
+    Route::get('articles/{slug}/comments', [CommentController::class, 'index'])->name('comments.index');
 });
 
 
