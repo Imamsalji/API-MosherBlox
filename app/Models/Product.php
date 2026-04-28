@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use App\Models\Concerns\HasRatings;
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, HasRatings;
 
     protected $fillable = [
         'game_id',
