@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Article\CommentController;
 use App\Http\Controllers\Api\Article\TagController;
 use App\Http\Controllers\Api\Notification\EmailController;
 use App\Http\Controllers\Api\Notification\WhatsAppWebhookController as WhatsAppWebhookController;
+use App\Http\Controllers\Api\RatingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,6 +89,18 @@ Route::prefix('v1')->group(function () {
         Route::post('articles/{slug}/comments', [CommentController::class, 'store'])->name('comments.store');
         Route::delete('comments/{comment}',     [CommentController::class, 'destroy'])->name('comments.destroy');
 
+        // Rating untuk produk
+        Route::prefix('products/{product}')->group(function () {
+            Route::get('ratings', [RatingController::class, 'index']);
+            Route::post('ratings', [RatingController::class, 'store']);
+        });
+
+        // Operasi pada rating spesifik
+        Route::prefix('ratings/{rating}')->group(function () {
+            Route::put('/', [RatingController::class, 'update']);
+            Route::delete('/', [RatingController::class, 'destroy']);
+            Route::post('react', [RatingController::class, 'react']);
+        });
 
         Route::post('/logout', [AuthController::class, 'logout']);
     });
