@@ -43,8 +43,6 @@ class Rating extends Model
         return $this->morphMany(Reaction::class, 'reactable');
     }
 
-    // ─── Scopes ──────────────────────────────────────────────
-
     public function scopeApproved($query)
     {
         return $query->where('status', 'approved');
@@ -54,8 +52,6 @@ class Rating extends Model
     {
         return $query->where('score', $score);
     }
-
-    // ─── Accessors ───────────────────────────────────────────
 
     public function getLikesCountAttribute(): int
     {
